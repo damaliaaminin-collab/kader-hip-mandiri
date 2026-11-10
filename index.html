@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KADER-HIP Mandiri - Deteksi Dini & Pemantauan Hipertensi Pribadi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        medical: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        .phone-frame {
+            width: 380px;
+            height: 780px;
+            border-radius: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3), 0 0 0 12px #0f172a;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; color: black; }
+            .phone-frame {
+                width: 100% !important;
+                height: auto !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 font-sans text-slate-800 min-h-screen flex flex-col items-center justify-center p-0 md:p-4">
+
+    <!-- View Mode Switcher Header (Desktop Controls) -->
+    <header class="w-full max-w-5xl bg-slate-800 text-white p-3 md:rounded-2xl mb-0 md:mb-4 flex flex-wrap justify-between items-center gap-2 no-print shadow-lg">
+        <div class="flex items-center space-x-3 px-2">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-500 to-teal-500 flex items-center justify-center font-bold text-white shadow">
+                <i class="fa-solid fa-heart-pulse"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-sm md:text-base leading-tight">KADER-HIP Mandiri</h1>
+                <p class="text-[11px] text-slate-400">Deteksi Dini & Pemantauan Hipertensi Diri Sendiri</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 text-xs">
+            <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Penyimpanan Lokal Aktif</span>
+            </span>
+
+            <button onclick="toggleViewMode()" id="viewModeBtn" class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-600 font-medium transition flex items-center gap-1.5">
+                <i class="fa-solid fa-desktop"></i>
+                <span id="viewModeText">Mode Smartphone Frame</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- App Main Container -->
+    <div id="appContainer" class="phone-frame bg-slate-50 relative overflow-hidden flex flex-col transition-all duration-300">
+        
+        <!-- Mobile Status Bar Mockup -->
+        <div class="bg-slate-900 text-white px-5 py-2 flex justify-between items-center text-[11px] font-semibold select-none z-30 no-print">
+            <span id="currentTime">10:24</span>
+            <div class="flex items-center space-x-1.5">
+                <i class="fa-solid fa-wifi text-[10px]"></i>
+                <i class="fa-solid fa-signal text-[10px]"></i>
+                <i class="fa-solid fa-battery-full text-[11px]"></i>
+            </div>
+        </div>
+
+        <!-- Dynamic Header (Visible from Screen 3 onwards) -->
+        <header id="screenHeader" class="bg-gradient-to-r from-brand-700 to-teal-700 text-white px-4 py-3 shadow-md flex justify-between items-center z-20 hidden">
+            <div class="flex items-center space-x-2">
+                <button id="headerBackBtn" onclick="navigateBack()" class="text-white hover:text-slate-200 p-1 mr-1 hidden">
+                    <i class="fa-solid fa-arrow-left text-lg"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-heart-pulse text-red-300 text-lg"></i>
+                    <h2 id="headerTitle" class="font-bold text-base tracking-tight truncate max-w-[200px]">KADER-HIP Mandiri</h2>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs">
+                <button onclick="showToast('Profil Saya: Data Tersimpan di Peramban Ini')" class="p-1.5 text-white/80 hover:text-white">
+                    <i class="fa-solid fa-circle-user text-lg"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- SCREEN CONTENT CONTAINER -->
+        <main class="flex-1 overflow-y-auto no-scrollbar relative flex flex-col">
+
+            <!-- SCREEN 1: SPLASH SCREEN -->
+            <section id="screen-1" class="app-screen flex-1 bg-gradient-to-b from-brand-800 via-brand-700 to-teal-700 text-white p-6 flex flex-col justify-between text-center">
+                <div class="pt-6">
+                    <span class="text-xs font-semibold tracking-wider bg-white/20 px-3.5 py-1 rounded-full uppercase">Kesehatan Pribadi</span>
+                </div>
+                
+                <div class="space-y-4 my-auto">
+                    <div class="w-24 h-24 bg-white rounded-3xl mx-auto flex items-center justify-center shadow-2xl transform hover:scale-105 transition">
+                        <i class="fa-solid fa-heart-pulse text-5xl text-brand-600"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-extrabold tracking-tight">KADER-HIP</h1>
+                        <p class="text-xs text-brand-100 mt-1 font-light max-w-xs mx-auto">Aplikasi Deteksi Dini & Pemantauan Hipertensi Diri Sendiri</p>
+                    </div>
+
+                    <div class="py-2">
+                        <div class="w-52 bg-white/10 backdrop-blur-md rounded-2xl mx-auto border border-white/20 p-3.5 space-y-2">
+                            <i class="fa-solid fa-user-shield text-3xl text-teal-200"></i>
+                            <p class="text-[11px] text-brand-50 leading-relaxed">Pantau tekanan darah, kenali risiko komplikasi, dan kelola gaya hidup sehat mandiri.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pb-6">
+                    <button onclick="goToScreen(2)" class="w-full bg-white text-brand-800 font-bold py-3.5 rounded-xl shadow-lg hover:bg-slate-100 transition active:scale-95 text-sm flex items-center justify-center gap-2">
+                        <span>Mulai Deteksi Mandiri</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <p class="text-[10px] text-white/70 mt-3">Versi Mandiri 2.0 • Data Tersimpan Aman di HP/PC Anda</p>
+                </div>
+            </section>
+
+            <!-- SCREEN 2: LOGIN / MASUK MANDIRI -->
+            <section id="screen-2" class="app-screen hidden flex-1 bg-white p-6 flex flex-col justify-between">
+                <div class="text-center pt-6">
+                    <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl shadow-sm">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Masuk Akun Saya</h2>
+                    <p class="text-xs text-slate-500 mt-1">Kelola catatan riwayat kesehatan pribadi Anda</p>
+                </div>
+
+                <form onsubmit="handleLogin(event)" class="space-y-4 my-auto">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Lengkap Saya</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fa-solid fa-user text-xs"></i>
+                            </span>
+                            <input type="text" id="loginUsername" required value="Budi Santoso" class="w-full pl-9 pr-3 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">PIN / Password Pribadi</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fa-solid fa-key text-xs"></i>
+                            </span>
+                            <input type="password" id="loginPassword" required value="1234" class="w-full pl-9 pr-9 py-2.5 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow transition text-xs">
+                        Masuk ke Dashboard Saya
+                    </button>
+
+                    <div class="text-center pt-2">
+                        <button type="button" onclick="goToScreen(3); showToast('Masuk sebagai Pengguna Mandiri');" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 rounded-xl text-xs transition border border-slate-200">
+                            Masuk Langsung (Tanpa Password)
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center text-[11px] text-slate-400 pb-2">
+                    Aplikasi Pemantauan Kesehatan Diri Sendiri
+                </div>
+            </section>
+
+            <!-- SCREEN 3: BERANDA MANDIRI -->
+            <section id="screen-3" class="app-screen hidden flex-1 bg-slate-50 p-4 space-y-4">
+                <!-- User Profile Greeting Header -->
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-user text-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-slate-400 font-medium">Halo,</div>
+                            <div class="font-bold text-slate-800 text-sm" id="userGreeting">Budi Santoso</div>
+                        </div>
+                    </div>
+                    <span id="dashStatusBadge" class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Prioritas Sedang</span>
+                </div>
+
+                <!-- Last BP Overview Box -->
+                <div class="bg-gradient-to-br from-brand-700 to-teal-700 text-white p-4 rounded-2xl shadow-md space-y-3 relative overflow-hidden">
+                    <div class="flex justify-between items-start relative z-10">
+                        <div>
+                            <span class="text-[11px] font-medium text-brand-100">Tekanan Darah Terakhir Saya</span>
+                            <div class="text-2xl font-black mt-0.5 tracking-tight" id="dashBpText">155 / 95 <span class="text-xs font-normal text-brand-200">mmHg</span></div>
+                            <div class="text-[10px] text-brand-200 mt-0.5" id="dashBpDate">Pengukuran: Hari ini</div>
+                        </div>
+                        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-xl text-brand-100">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-white/15 flex justify-between items-center relative z-10">
+                        <button onclick="startNewScreening()" class="bg-white text-brand-800 font-bold px-3.5 py-2 rounded-xl text-xs hover:bg-slate-100 transition shadow flex items-center gap-1.5">
+                            <i class="fa-solid fa-stethoscope"></i>
+                            <span>Cek Risiko Diri Sekarang</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Menu Grid (4 Cards) -->
+                <div>
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Menu Utama Saya</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        
+                        <!-- Menu 1: Skrining Mandiri -->
+                        <div onclick="startNewScreening()" class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm hover:border-brand-400 transition cursor-pointer flex flex-col justify-between h-24">
+                            <div class="w-8 h-8 rounded-xl bg-sky-50 text-brand-600 flex items-center justify-center text-base">
+                                <i class="fa-solid fa-clipboard-check"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-slate-800">Skrining Diri</h5>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Cek Komplikasi</p>
+                            </div>
+                        </div>
+
+                        <!-- Menu 2: Pemantauan TD -->
+                        <div onclick="goToScreen(8)" class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm hover:border-brand-400 transition cursor-pointer flex flex-col justify-between h-24">
+                            <div class="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-base">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-slate-800">Grafik & Tren TD</h5>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Riwayat Pengukuran</p>
+                            </div>
+                        </div>
+
+                        <!-- Menu 3: Catatan Harian Obat -->
+                        <div onclick="goToScreen(9)" class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm hover:border-brand-400 transition cursor-pointer flex flex-col justify-between h-24">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-base">
+                                <i class="fa-solid fa-pills"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-slate-800">Jurnal Obat</h5>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Kepatuhan Harian</p>
+                            </div>
+                        </div>
+
+                        <!-- Menu 4: Laporan Saya -->
+                        <div onclick="goToScreen(10)" class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm hover:border-brand-400 transition cursor-pointer flex flex-col justify-between h-24">
+                            <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-base">
+                                <i class="fa-solid fa-file-medical"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-xs text-slate-800">Laporan Saya</h5>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Cetak Untuk Dokter</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Info Banner Pengingat Minum Obat -->
+                <div class="bg-teal-50 border border-teal-200 p-3.5 rounded-2xl flex items-center space-x-3 text-xs text-teal-800">
+                    <i class="fa-solid fa-bell text-xl text-teal-600"></i>
+                    <div>
+                        <div class="font-bold">Pengingat Obat Harian</div>
+                        <div class="text-[11px] text-teal-700">Jangan lupa minum obat hipertensi secara teratur sesuai petunjuk dokter.</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN 4: WIZARD SKRINING LANGKAH 1 (DATA DIRI) -->
+            <section id="screen-4" class="app-screen hidden flex-1 bg-slate-50 p-4 space-y-4">
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                        <span>Langkah 1 dari 4</span>
+                        <span class="text-brand-600">Data Diri & Fisik</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div class="bg-brand-600 h-full w-1/4 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="font-bold text-slate-800 text-sm border-b pb-2">Profil Kesehatan Diri</h3>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Usia Saya (Tahun) *</label>
+                            <input type="number" id="inputUsia" required value="65" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Jenis Kelamin *</label>
+                            <select id="inputJk" required class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                                <option value="Laki-laki" selected>Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tinggi Badan (cm)</label>
+                            <input type="number" id="inputTb" value="165" oninput="calculateBMI()" placeholder="165" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Berat Badan (kg)</label>
+                            <input type="number" id="inputBb" value="70" oninput="calculateBMI()" placeholder="70" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Auto Calculated BMI Badge -->
+                    <div class="bg-slate-100 p-3 rounded-xl flex justify-between items-center text-xs">
+                        <span class="font-semibold text-slate-700">Indeks Massa Tubuh (IMT):</span>
+                        <span id="bmiResultText" class="font-extrabold text-brand-700">25.7 kg/m² (Gemuk)</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat Domisili</label>
+                        <input type="text" id="inputAlamat" value="Jalan Mawar No. 12" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button onclick="goToScreen(5)" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow transition text-xs flex items-center justify-center gap-1.5">
+                        <span>Lanjutkan Pengukuran TD</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- SCREEN 5: WIZARD SKRINING LANGKAH 2 (PEMERIKSAAN TD & RIWAYAT) -->
+            <section id="screen-5" class="app-screen hidden flex-1 bg-slate-50 p-4 space-y-4">
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                        <span>Langkah 2 dari 4</span>
+                        <span class="text-brand-600">Tekanan Darah & Riwayat</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div class="bg-brand-600 h-full w-2/4 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-slate-800 text-sm border-b pb-2">Hasil Pengukuran Tensimeter Saya</h3>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Sistolik (mmHg) *</label>
+                            <input type="number" id="inputSys" placeholder="155" value="155" class="w-full text-sm p-2.5 border border-slate-300 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Diastolik (mmHg) *</label>
+                            <input type="number" id="inputDia" placeholder="95" value="95" class="w-full text-sm p-2.5 border border-slate-300 rounded-xl font-bold text-slate-800 focus:ring-2 focus:ring-brand-500 focus:outline-none">
+                        </div>
+                    </div>
+
+                    <h4 class="font-bold text-slate-700 text-xs pt-1">Riwayat Kesehatan & Gaya Hidup Saya:</h4>
+
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="riskDm" class="w-4 h-4 text-brand-600 rounded" checked>
+                            <span class="text-slate-700">Punya Riwayat Diabetes Melitus</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="riskGinjal" class="w-4 h-4 text-brand-600 rounded">
+                            <span class="text-slate-700">Punya Riwayat Penyakit Ginjal</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="riskJantung" class="w-4 h-4 text-brand-600 rounded">
+                            <span class="text-slate-700">Pernah Stroke / Penyakit Jantung</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="riskRokok" class="w-4 h-4 text-brand-600 rounded" checked>
+                            <span class="text-slate-700">Saya Merokok Aktif</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="riskTidakObat" class="w-4 h-4 text-brand-600 rounded" checked>
+                            <span class="text-slate-700">Kadang Lupa / Tidak Teratur Minum Obat</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="riskOlahraga" class="w-4 h-4 text-brand-600 rounded">
+                            <span class="text-slate-700">Jarang Aktivitas Fisik / Olahraga</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex space-x-2 pt-2">
+                    <button onclick="goToScreen(4)" class="w-1/3 bg-slate-200 text-slate-700 font-medium py-3 rounded-xl text-xs">Kembali</button>
+                    <button onclick="goToScreen(6)" class="w-2/3 bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow text-xs">Lanjutkan <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+            </section>
+
+            <!-- SCREEN 6: WIZARD SKRINING LANGKAH 3 (GEJALA & TANDA BAHAYA PRIBADI) -->
+            <section id="screen-6" class="app-screen hidden flex-1 bg-slate-50 p-4 space-y-4">
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                        <span>Langkah 3 dari 4</span>
+                        <span class="text-red-600">Cek Gejala Bahaya Diri</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div class="bg-brand-600 h-full w-3/4 transition-all duration-300"></div>
+                    </div>
+                </div>
+
+                <div class="bg-red-50 border border-red-200 p-4 rounded-2xl shadow-sm space-y-3">
+                    <div class="flex items-center space-x-2 text-red-800 font-bold text-sm">
+                        <i class="fa-solid fa-triangle-exclamation text-red-600 animate-bounce"></i>
+                        <h3>Apakah Anda Mengalami Gejala Ini Saat Ini?</h3>
+                    </div>
+                    <p class="text-[11px] text-red-700">Centang jika Anda merasakan tanda darurat berikut ini:</p>
+
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center space-x-2.5 p-2.5 bg-white rounded-xl border border-red-200 cursor-pointer">
+                            <input type="checkbox" id="rfNyeriDada" class="w-4 h-4 text-red-600 rounded">
+                            <span class="text-red-900 font-medium">Nyeri dada hebat / tertindih beban berat</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2.5 bg-white rounded-xl border border-red-200 cursor-pointer">
+                            <input type="checkbox" id="rfSesak" class="w-4 h-4 text-red-600 rounded">
+                            <span class="text-red-900 font-medium">Sesak napas mendadak / berat</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2.5 bg-white rounded-xl border border-red-200 cursor-pointer">
+                            <input type="checkbox" id="rfKelemahan" class="w-4 h-4 text-red-600 rounded">
+                            <span class="text-red-900 font-medium">Tangan / kaki lemas sebelah mendadak</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2.5 bg-white rounded-xl border border-red-200 cursor-pointer">
+                            <input type="checkbox" id="rfPelo" class="w-4 h-4 text-red-600 rounded">
+                            <span class="text-red-900 font-medium">Bicara jadi pelo atau mendadak bingung</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2.5 bg-white rounded-xl border border-red-200 cursor-pointer">
+                            <input type="checkbox" id="rfPenglihatan" class="w-4 h-4 text-red-600 rounded">
+                            <span class="text-red-900 font-medium">Penglihatan mendadak kabur / gelap</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex space-x-2 pt-2">
+                    <button onclick="goToScreen(5)" class="w-1/3 bg-slate-200 text-slate-700 font-medium py-3 rounded-xl text-xs">Kembali</button>
+                    <button onclick="processScreeningResult()" class="w-2/3 bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow text-xs flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>Hitung Risiko Saya</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- SCREEN 7: HASIL RISIKO & REKOMENDASI PRIBADI -->
+            <section id="screen-7" class="app-screen hidden flex-1 bg-slate-50 p-4 space-y-4">
+                <div class="bg-white p-3 rounded-xl border border-slate-200">
+                    <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                        <span>Langkah 4 dari 4</span>
+                        <span class="text-emerald-600">Hasil Analisis Risiko Saya</span>
+                    </div>
+                    <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div class="bg-emerald-500 h-full w-full"></div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Risk Result Card -->
+                <div id="resultCard" class="bg-red-50 border-2 border-red-300 p-4 rounded-2xl text-center space-y-3 shadow-sm">
+                    <div class="w-14 h-14 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <div>
+                        <h3 id="resultCategoryText" class="text-xl font-extrabold text-red-700">Prioritas Tinggi</h3>
+                        <div id="resultScoreText" class="text-xs font-semibold text-slate-600 mt-0.5">• Skor Risiko Hipertensi Saya: 7 •</div>
+                    </div>
+
+                    <div class="bg-white py-2 px-4 rounded-xl border border-red-200 inline-block font-bold text-slate-800 text-sm">
+                        Tekanan Darah: <span id="resultBpText">155 / 95 mmHg</span>
+                    </div>
+
+                    <div class="text-left bg-white p-3 rounded-xl border border-red-100 text-xs space-y-1">
+                        <div class="font-bold text-slate-700 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-info text-amber-500"></i> Makna Hasil Bagi Kesehatan Saya:
+                        </div>
+                        <p id="resultMeaningText" class="text-slate-600 leading-relaxed">
+                            Anda berisiko tinggi mengalami komplikasi (stroke, gangguan jantung, atau kerusakan ginjal).
+                        </p>
+                    </div>
+
+                    <div class="text-left text-xs space-y-1.5 pt-1">
+                        <div class="font-bold text-slate-800">Langkah Tindakan Mandiri:</div>
+                        <ul id="resultRecList" class="space-y-1 text-slate-600">
+                            <li class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i> <span>Konsultasi ke Dokter / Puskesmas terdekat secepatnya</span></li>
+                            <li class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i> <span>Minum obat hipertensi secara teratur</span></li>
+                            <li class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i> <span>Ukur tekanan darah secara berkala</span></li>
+                            <li class="flex items-start gap-1.5"><i class="fa-solid fa-circle-check text-emerald-500 mt-0.5"></i> <span>Terapkan Pola Hidup Sehat CERDIK</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="flex space-x-2 pt-1">
+                    <button onclick="saveCurrentScreening()" class="w-1/2 bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Catatan
+                    </button>
+                    <button onclick="window.print()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-print"></i> Cetak Ringkasan
+                    </button>
+                </div>
+            </section>
+
+            <!-- SCREEN 8: PEMANTAUAN TEKANAN DARAH (GRAFIK & RIWAYAT PRIBADI) -->
+            <section id="screen-8" class="app-screen hidden flex-1 bg-slate-50 p-4 space-y-4">
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-sm text-slate-800">Pemantauan Tekanan Darah Saya</div>
+                        <div class="text-[11px] text-slate-500">Grafik tren perkembangan tensi pribadi</div>
+                    </div>
+                    <button onclick="promptNewMeasurement()" class="bg-brand-50 text-brand-700 font-bold px-2.5 py-1.5 rounded-lg text-xs hover:bg-brand-100 flex items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> Tambah
+                    </button>
+                </div>
+
+                <!-- Tab Toggle (Grafik / Riwayat) -->
+                <div class="bg-slate-200 p-1 rounded-xl flex text-xs font-bold text-center">
+                    <button id="tabGrafikBtn" onclick="switchMonTab('grafik')" class="w-1/2 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm">Grafik Tren</button>
+                    <button id="tabRiwayatBtn" onclick="switchMonTab('riwayat')" class="w-1/2 py-1.5 rounded-lg text-slate-600">Daftar Riwayat</button>
+                </div>
+
+                <!-- Grafik Container -->
+                <div id="monGrafikView" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-600">
+                        <span>5 Pengukuran Terakhir</span>
+                        <div class="flex items-center space-x-3 text-[10px]">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> Sistolik</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-brand-600"></span> Diastolik</span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Canvas Chart -->
+                    <div class="h-44 w-full relative">
+                        <canvas id="bpChartCanvas" class="w-full h-full"></canvas>
+                    </div>
+
+                    <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs text-emerald-800 flex items-center space-x-2">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                        <div>
+                            <div class="font-bold">Analisis Tren Pribadi</div>
+                            <div class="text-[11px]">Tekanan darah Anda cenderung membaik mendeteksi target normal.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Riwayat Table Container -->
+                <div id="monRiwayatView" class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hidden space-y-2">
+                    <h4 class="font-bold text-xs text-slate-700 mb-2">Riwayat Pengukuran Saya</h4>
+                    <div class="divide-y divide-slate-100 text-xs" id="historyListContainer">
+                        <div class="py-2 flex justify-between items-center">
+                            <span>Hari Ini (29 Jan 2026)</span>
+                            <span class="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">155 / 95 mmHg</span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                            <span>22 Jan 2026</span>
+                            <span class="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">148 / 90 mmHg</span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                            <span>15 Jan 2026</span>
+                            <span class="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">150 / 92 mmHg</span>
+                        </div>
+                        <div class="py-2 flex justify-between items-center">
+                            <span>8 Jan 2026</span>
+                            <span class="font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded-lg">158 / 96 mmHg</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCREEN 9: JURNAL KHUSUS KEPATUHAN OBAT & KELUHAN HARIAN -->
+            <section id="screen-9" class="app-screen hidden flex-1 bg-slate-50 p-4 space-y-4">
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-pills text-lg"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-sm text-slate-800">Jurnal Kesehatan Saya</div>
+                        <div class="text-[11px] text-slate-500">Catatan Minum Obat & Keluhan Harian</div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                    <h3 class="font-bold text-slate-800 text-sm border-b pb-2">Catatan Hari Ini</h3>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Tanggal Catatan</label>
+                        <input type="date" id="hvInputDate" value="2026-01-29" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl">
+                    </div>
+
+                    <h4 class="font-bold text-slate-700 text-xs pt-1">Kepatuhan Mandiri:</h4>
+
+                    <div class="space-y-2 text-xs">
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="hvObat" class="w-4 h-4 text-emerald-600 rounded" checked>
+                            <span class="text-slate-700 font-medium">Saya sudah minum obat hipertensi hari ini</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="hvTdTerukur" class="w-4 h-4 text-emerald-600 rounded" checked>
+                            <span class="text-slate-700 font-medium">Sudah mengukur tekanan darah hari ini</span>
+                        </label>
+                        <label class="flex items-center space-x-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer">
+                            <input type="checkbox" id="hvKeluhanBaru" class="w-4 h-4 text-amber-600 rounded">
+                            <span class="text-slate-700 font-medium">Ada keluhan pusing / leher kaku hari ini</span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Catatan Tambahan (Keluhan / Makanan / Aktivitas)</label>
+                        <textarea id="hvCatatan" rows="3" class="w-full text-xs p-2.5 border border-slate-300 rounded-xl" placeholder="Contoh: Mengurangi konsumsi garam, jalan kaki 20 menit pagi ini.">Mengurangi konsumsi garam, jalan kaki 20 menit pagi ini.</textarea>
+                    </div>
+                </div>
+
+                <button onclick="saveHomeVisitLog()" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-bold py-3 rounded-xl shadow text-xs flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-floppy-disk"></i>
+                    <span>Simpan Jurnal Harian</span>
+                </button>
+            </section>
+
+            <!-- SCREEN 10: LAPORAN KESEHATAN SAYA (PRINT / BEROBAT KE DOKTER) -->
+            <section id="screen-10" class="app-screen hidden flex-1 bg-slate-50 p-4 space-y-4">
+                <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] text-slate-400 font-semibold uppercase">Laporan Riwayat Kesehatan</div>
+                        <div class="font-bold text-sm text-slate-800" id="reportOwnerName">Budi Santoso (65 Thn)</div>
+                    </div>
+                    <button onclick="window.print()" class="bg-brand-50 text-brand-700 font-bold px-3 py-1.5 rounded-lg text-xs hover:bg-brand-100 flex items-center gap-1">
+                        <i class="fa-solid fa-print"></i> Cetak
+                    </button>
+                </div>
+
+                <!-- Stats Summary Cards -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 text-center shadow-sm">
+                        <div class="w-8 h-8 bg-blue-50 text-brand-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm">
+                            <i class="fa-solid fa-heart-pulse"></i>
+                        </div>
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Rata-rata Tensi</div>
+                        <div class="text-base font-black text-slate-800 mt-0.5">150 / 92 <span class="text-[10px] font-normal text-slate-400">mmHg</span></div>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 text-center shadow-sm">
+                        <div class="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-1 text-sm">
+                            <i class="fa-solid fa-capsules"></i>
+                        </div>
+                        <div class="text-[10px] text-slate-400 font-bold uppercase">Kepatuhan Obat</div>
+                        <div class="text-base font-black text-emerald-600 mt-0.5">85% <span class="text-[10px] font-normal text-slate-400">Teratur</span></div>
+                    </div>
+                </div>
+
+                <!-- Personal Summary Box -->
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-2.5">
+                    <h4 class="font-bold text-xs text-slate-700 border-b pb-1.5">Ringkasan Untuk Tenaga Kesehatan</h4>
+
+                    <div class="space-y-2 text-xs text-slate-600">
+                        <div class="flex justify-between border-b pb-1">
+                            <span>Status Risiko Hipertensi:</span>
+                            <span class="font-bold text-amber-600">Prioritas Sedang - Tinggi</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span>Faktor Risiko Teridentifikasi:</span>
+                            <span class="font-semibold text-slate-800">Diabetes, Merokok</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span>Status IMT Diri:</span>
+                            <span class="font-semibold text-slate-800">25.7 kg/m² (Gemuk)</span>
+                        </div>
+                        <div class="flex justify-between border-b pb-1">
+                            <span>Tanda Bahaya (Red Flag):</span>
+                            <span class="font-bold text-emerald-600">Tidak Ada Saat Ini</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export Action Button -->
+                <button onclick="window.print()" class="w-full bg-gradient-to-r from-brand-600 to-teal-600 hover:from-brand-700 hover:to-teal-700 text-white font-bold py-3 rounded-xl shadow text-xs flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> Unduh Laporan PDF Untuk Dokter
+                </button>
+            </section>
+
+        </main>
+
+        <!-- Dynamic Bottom Navigation Bar -->
+        <nav id="bottomNav" class="bg-white border-t border-slate-200 px-4 py-2 flex justify-around items-center text-[10px] font-semibold text-slate-500 z-20 hidden no-print">
+            <button onclick="goToScreen(3)" id="navBtn-3" class="flex flex-col items-center space-y-1 text-brand-600">
+                <i class="fa-solid fa-house text-base"></i>
+                <span>Beranda</span>
+            </button>
+            <button onclick="startNewScreening()" id="navBtn-4" class="flex flex-col items-center space-y-1 hover:text-brand-600">
+                <i class="fa-solid fa-stethoscope text-base"></i>
+                <span>Skrining</span>
+            </button>
+            <button onclick="goToScreen(8)" id="navBtn-8" class="flex flex-col items-center space-y-1 hover:text-brand-600">
+                <i class="fa-solid fa-chart-line text-base"></i>
+                <span>Grafik TD</span>
+            </button>
+            <button onclick="goToScreen(9)" id="navBtn-9" class="flex flex-col items-center space-y-1 hover:text-brand-600">
+                <i class="fa-solid fa-pills text-base"></i>
+                <span>Jurnal</span>
+            </button>
+            <button onclick="goToScreen(10)" id="navBtn-10" class="flex flex-col items-center space-y-1 hover:text-brand-600">
+                <i class="fa-solid fa-file-medical text-base"></i>
+                <span>Laporan</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast" class="fixed bottom-6 z-50 bg-slate-900 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl flex items-center space-x-2 transition-all duration-300 opacity-0 pointer-events-none translate-y-4">
+        <i class="fa-solid fa-circle-info text-brand-400"></i>
+        <span id="toastMsg">Notifikasi</span>
+    </div>
+
+    <script>
+        let currentScreen = 1;
+        let isMobileFrameMode = true;
+
+        // User Personal State
+        let userHealthState = {
+            name: 'Budi Santoso',
+            age: 65,
+            gender: 'Laki-laki',
+            height: 165,
+            weight: 70,
+            bmi: 25.7,
+            lastSys: 155,
+            lastDia: 95,
+            lastDate: '29 Jan 2026',
+            riskCategory: 'Prioritas Sedang',
+            bpHistory: [
+                { date: '29 Jan 2026', sys: 155, dia: 95 },
+                { date: '22 Jan 2026', sys: 148, dia: 90 },
+                { date: '15 Jan 2026', sys: 150, dia: 92 },
+                { date: '8 Jan 2026', sys: 158, dia: 96 }
+            ]
+        };
+
+        const screenTitles = {
+            3: 'Beranda Saya',
+            4: 'Data Diri & Fisik',
+            5: 'Skrining Risiko Hipertensi',
+            6: 'Skrining Gejala Darurat',
+            7: 'Hasil Analisis Risiko Saya',
+            8: 'Grafik & Tren TD Saya',
+            9: 'Jurnal Obat & Harian',
+            10: 'Laporan Kesehatan Saya'
+        };
+
+        window.onload = function() {
+            const saved = localStorage.getItem('kader_hip_personal_state');
+            if (saved) {
+                try { userHealthState = JSON.parse(saved); } catch(e){}
+            }
+            calculateBMI();
+            updateDashboardDisplay();
+            drawBPChart();
+        };
+
+        function savePersonalState() {
+            localStorage.setItem('kader_hip_personal_state', JSON.stringify(userHealthState));
+            updateDashboardDisplay();
+        }
+
+        function calculateBMI() {
+            const tb = parseFloat(document.getElementById('inputTb').value) || 0;
+            const bb = parseFloat(document.getElementById('inputBb').value) || 0;
+            const bmiEl = document.getElementById('bmiResultText');
+
+            if (tb > 0 && bb > 0) {
+                const heightInMeters = tb / 100;
+                const bmi = (bb / (heightInMeters * heightInMeters)).toFixed(1);
+                userHealthState.bmi = bmi;
+
+                let category = '';
+                if (bmi < 18.5) category = '(Kurus)';
+                else if (bmi < 24.9) category = '(Normal)';
+                else if (bmi < 29.9) category = '(Gemuk)';
+                else category = '(Obesitas)';
+
+                if (bmiEl) bmiEl.innerText = `${bmi} kg/m² ${category}`;
+            }
+        }
+
+        function goToScreen(screenNumber) {
+            currentScreen = screenNumber;
+
+            document.querySelectorAll('.app-screen').forEach(el => el.classList.add('hidden'));
+
+            const target = document.getElementById('screen-' + screenNumber);
+            if (target) target.classList.remove('hidden');
+
+            const header = document.getElementById('screenHeader');
+            const bottomNav = document.getElementById('bottomNav');
+            const backBtn = document.getElementById('headerBackBtn');
+            const titleEl = document.getElementById('headerTitle');
+
+            if (screenNumber >= 3) {
+                header.classList.remove('hidden');
+                bottomNav.classList.remove('hidden');
+                titleEl.innerText = screenTitles[screenNumber] || 'KADER-HIP Mandiri';
+
+                if (screenNumber > 3) {
+                    backBtn.classList.remove('hidden');
+                } else {
+                    backBtn.classList.add('hidden');
+                }
+            } else {
+                header.classList.add('hidden');
+                bottomNav.classList.add('hidden');
+            }
+
+            document.querySelectorAll('#bottomNav button').forEach(btn => btn.className = 'flex flex-col items-center space-y-1 hover:text-brand-600');
+            const activeNav = document.getElementById('navBtn-' + screenNumber);
+            if (activeNav) activeNav.className = 'flex flex-col items-center space-y-1 text-brand-600';
+
+            if (screenNumber === 8) {
+                setTimeout(drawBPChart, 50);
+            }
+        }
+
+        function navigateBack() {
+            if (currentScreen > 3) {
+                goToScreen(currentScreen - 1);
+            } else {
+                goToScreen(3);
+            }
+        }
+
+        function startNewScreening() {
+            goToScreen(4);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('loginUsername').value || 'Budi Santoso';
+            userHealthState.name = user;
+            document.getElementById('userGreeting').innerText = user;
+            document.getElementById('reportOwnerName').innerText = user + ` (${userHealthState.age} Thn)`;
+            showToast('Selamat datang, ' + user);
+            goToScreen(3);
+        }
+
+        function processScreeningResult() {
+            const sys = parseInt(document.getElementById('inputSys').value) || 120;
+            const dia = parseInt(document.getElementById('inputDia').value) || 80;
+
+            const hasRedFlags = document.getElementById('rfNyeriDada').checked ||
+                                document.getElementById('rfSesak').checked ||
+                                document.getElementById('rfKelemahan').checked ||
+                                document.getElementById('rfPelo').checked ||
+                                document.getElementById('rfPenglihatan').checked;
+
+            let riskScore = 0;
+            if (document.getElementById('riskDm').checked) riskScore += 2;
+            if (document.getElementById('riskGinjal').checked) riskScore += 2;
+            if (document.getElementById('riskJantung').checked) riskScore += 2;
+            if (document.getElementById('riskRokok').checked) riskScore += 1;
+            if (document.getElementById('riskTidakObat').checked) riskScore += 1;
+            if (document.getElementById('riskOlahraga').checked) riskScore += 1;
+
+            if (sys >= 160 || dia >= 100) riskScore += 3;
+            else if (sys >= 140 || dia >= 90) riskScore += 2;
+
+            const card = document.getElementById('resultCard');
+            const catTitle = document.getElementById('resultCategoryText');
+            const scoreText = document.getElementById('resultScoreText');
+            const bpText = document.getElementById('resultBpText');
+            const meaningText = document.getElementById('resultMeaningText');
+
+            userHealthState.lastSys = sys;
+            userHealthState.lastDia = dia;
+            bpText.innerText = sys + ' / ' + dia + ' mmHg';
+            scoreText.innerText = '• Skor Risiko Hipertensi Saya: ' + riskScore + ' •';
+
+            if (hasRedFlags) {
+                card.className = "bg-red-600 text-white p-5 rounded-2xl text-center space-y-3 shadow-lg animate-pulse";
+                catTitle.innerText = "DARURAT! SEGERA KE IGD";
+                meaningText.innerText = "Terdeteksi TANDA BAHAYA DARURAT! Minta bantuan keluarga atau segera ke Puskesmas / IGD Rumah Sakit terdekat sekarang.";
+                userHealthState.riskCategory = "SANGAT TINGGI (IGD)";
+            } else if (riskScore >= 6 || sys >= 160) {
+                card.className = "bg-red-50 border-2 border-red-300 p-4 rounded-2xl text-center space-y-3 shadow-sm";
+                catTitle.innerText = "Prioritas Tinggi";
+                meaningText.innerText = "Anda berisiko tinggi mengalami komplikasi (stroke, gangguan jantung, atau kerusakan ginjal).";
+                userHealthState.riskCategory = "Prioritas Tinggi";
+            } else if (riskScore >= 3 || sys >= 140) {
+                card.className = "bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl text-center space-y-3 shadow-sm";
+                catTitle.innerText = "Prioritas Sedang";
+                meaningText.innerText = "Risiko komplikasi sedang. Disarankan konsultasi obat ke dokter dan terapkan gaya hidup sehat.";
+                userHealthState.riskCategory = "Prioritas Sedang";
+            } else {
+                card.className = "bg-emerald-50 border-2 border-emerald-300 p-4 rounded-2xl text-center space-y-3 shadow-sm";
+                catTitle.innerText = "Prioritas Rutin (Normal)";
+                meaningText.innerText = "Tekanan darah Anda dalam rentang relatif terkontrol. Pertahankan pola hidup sehat CERDIK.";
+                userHealthState.riskCategory = "Normal / Rutin";
+            }
+
+            savePersonalState();
+            goToScreen(7);
+        }
+
+        function saveCurrentScreening() {
+            showToast('Catatan Pengukuran Berhasil Disimpan!');
+            goToScreen(8);
+        }
+
+        function switchMonTab(tab) {
+            const gView = document.getElementById('monGrafikView');
+            const rView = document.getElementById('monRiwayatView');
+            const gBtn = document.getElementById('tabGrafikBtn');
+            const rBtn = document.getElementById('tabRiwayatBtn');
+
+            if (tab === 'grafik') {
+                gView.classList.remove('hidden');
+                rView.classList.add('hidden');
+                gBtn.className = 'w-1/2 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm';
+                rBtn.className = 'w-1/2 py-1.5 rounded-lg text-slate-600';
+                drawBPChart();
+            } else {
+                gView.classList.add('hidden');
+                rView.classList.remove('hidden');
+                rBtn.className = 'w-1/2 py-1.5 rounded-lg bg-white text-brand-700 shadow-sm';
+                gBtn.className = 'w-1/2 py-1.5 rounded-lg text-slate-600';
+            }
+        }
+
+        function promptNewMeasurement() {
+            const val = prompt('Masukkan Hasil Pengukuran Tensimeter Baru Saya (Sistolik/Diastolik):', '140/85');
+            if (val && val.includes('/')) {
+                const parts = val.split('/');
+                const sys = parseInt(parts[0]);
+                const dia = parseInt(parts[1]);
+                if (sys && dia) {
+                    userHealthState.lastSys = sys;
+                    userHealthState.lastDia = dia;
+                    userHealthState.bpHistory.unshift({ date: 'Hari Ini', sys: sys, dia: dia });
+                    savePersonalState();
+                    showToast('Pengukuran TD ' + val + ' berhasil ditambahkan!');
+                    drawBPChart();
+                }
+            }
+        }
+
+        function saveHomeVisitLog() {
+            showToast('Jurnal Kesehatan Harian Berhasil Disimpan!');
+            goToScreen(3);
+        }
+
+        function drawBPChart() {
+            const canvas = document.getElementById('bpChartCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const dates = ['8 Jan', '15 Jan', '22 Jan', '29 Jan', 'Hari Ini'];
+            const sysData = [158, 150, 148, 155, userHealthState.lastSys || 155];
+            const diaData = [96, 92, 90, 95, userHealthState.lastDia || 95];
+
+            const padding = 25;
+            const chartW = w - padding * 2;
+            const chartH = h - padding * 2;
+
+            function getY(val) {
+                return h - padding - ((val - 60) / 120) * chartH;
+            }
+
+            function getX(i) {
+                return padding + (i / (dates.length - 1)) * chartW;
+            }
+
+            // Grid Lines
+            ctx.strokeStyle = '#f1f5f9';
+            ctx.lineWidth = 1;
+            for (let yVal = 80; yVal <= 160; yVal += 40) {
+                const y = getY(yVal);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(w - padding, y);
+                ctx.stroke();
+            }
+
+            // Draw Systolic Line (Red)
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            sysData.forEach((val, i) => {
+                if (i === 0) ctx.moveTo(getX(i), getY(val));
+                else ctx.lineTo(getX(i), getY(val));
+            });
+            ctx.stroke();
+
+            sysData.forEach((val, i) => {
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath();
+                ctx.arc(getX(i), getY(val), 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Draw Diastolic Line (Blue)
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            diaData.forEach((val, i) => {
+                if (i === 0) ctx.moveTo(getX(i), getY(val));
+                else ctx.lineTo(getX(i), getY(val));
+            });
+            ctx.stroke();
+
+            diaData.forEach((val, i) => {
+                ctx.fillStyle = '#0284c7';
+                ctx.beginPath();
+                ctx.arc(getX(i), getY(val), 4, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // X-Labels
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '10px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            dates.forEach((d, i) => {
+                ctx.fillText(d, getX(i), h - 5);
+            });
+        }
+
+        function updateDashboardDisplay() {
+            document.getElementById('dashBpText').innerText = `${userHealthState.lastSys} / ${userHealthState.lastDia}`;
+            document.getElementById('dashStatusBadge').innerText = userHealthState.riskCategory;
+            document.getElementById('userGreeting').innerText = userHealthState.name;
+        }
+
+        function toggleViewMode() {
+            const container = document.getElementById('appContainer');
+            const btnText = document.getElementById('viewModeText');
+            isMobileFrameMode = !isMobileFrameMode;
+
+            if (isMobileFrameMode) {
+                container.className = "phone-frame bg-slate-50 relative overflow-hidden flex flex-col transition-all duration-300";
+                btnText.innerText = "Mode Smartphone Frame";
+            } else {
+                container.className = "w-full max-w-4xl h-[800px] rounded-2xl shadow-2xl bg-slate-50 relative overflow-hidden flex flex-col transition-all duration-300 border border-slate-700";
+                btnText.innerText = "Mode Full Web Page";
+            }
+            setTimeout(drawBPChart, 100);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+
